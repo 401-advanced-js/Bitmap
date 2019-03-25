@@ -1,95 +1,102 @@
+
 'use strict';
 
 const fs = require('fs');
 
-/**
- * Bitmap -- receives a file name, used in the transformer to note the new buffer
- * @param filePath
- * @constructor
- */
-function Bitmap(filePath) {
-  this.file = filePath;
-}
+const pic1 = fs.readFileSync(`${__dirname}/assets/baldy.bmp`);
+const pic2 = fs.readFileSync(`${__dirname}/assets/baldy.bmp`);
+const pic3 = fs.readFileSync(`${__dirname}/assets/baldy.bmp`);
+const pic4 = fs.readFileSync(`${__dirname}/assets/baldy.bmp`);
 
-/**
- * Parser -- accepts a buffer and will parse through it, according to the specification, creating object properties for each segment of the file
- * @param buffer
- */
-Bitmap.prototype.parse = function(buffer) {
-  this.buffer = buffer;
-  this.type = buffer.toString('utf-8', 0, 2);
-  //... and so on
+
+const toJail = function(){
+  let color = 0;
+  for (let i = 1154; i < pic1.length; i= i + 16) {
+    pic1[i-1] = color;
+    pic1[i] = color;
+    pic1[i+1] = color;
+  }
+};
+const demon = function() {
+  for (let i = 1146; i < pic2.length; i++) {
+    pic2[i] = 255 - pic2[i];
+  }
 };
 
-/**
- * Transform a bitmap using some set of rules. The operation points to some function, which will operate on a bitmap instance
- * @param operation
- */
-Bitmap.prototype.transform = function(operation) {
-  // This is really assumptive and unsafe
-  transforms[operation](this);
-  this.newFile = this.file.replace(/\.bmp/, `.${operation}.bmp`);
+const transform3 = function(){
+  for (let i = 1146; i < pic3.length; i= i+2) {
+    if(pic3[i] > 244){
+      pic3[i] = 0;
+      pic3[i-1] = 0;
+      pic3[i+1] = 0;
+    } 
+  }
 };
 
-/**
- * Sample Transformer (greyscale)
- * Would be called by Bitmap.transform('greyscale')
- * Pro Tip: Use "pass by reference" to alter the bitmap's buffer in place so you don't have to pass it around ...
- * @param bmp
- */
-const transformGreyscale = (bmp) => {
-
-  console.log('Transforming bitmap into greyscale', bmp);
-
-  //TODO: Figure out a way to validate that the bmp instance is actually valid before trying to transform it
-
-  //TODO: alter bmp to make the image greyscale ...
-
-};
-
-const doTheInversion = (bmp) => {
-  bmp = {};
-}
-
-/**
- * A dictionary of transformations
- * Each property represents a transformation that someone could enter on the command line and then a function that would be called on the bitmap to do this job
- */
-const transforms = {
-  greyscale: transformGreyscale,
-  invert: doTheInversion
-};
-
-// ------------------ GET TO WORK ------------------- //
-
-function transformWithCallbacks() {
-
-  fs.readFile(file, (err, buffer) => {
-
-    if (err) {
-      throw err;
+const blackAndWhite = function(){
+  for (let i = 1146; i < pic4.length; i++) {
+    if(pic4[i] <= 170){
+      pic4[i] = 0;
     }
+    if(pic4[i] > 170){
+      pic4[i] = 255;
+    }
+  }
+};
 
-    bitmap.parse(buffer);
+toJail();
+fs.writeFile('./transformations/test1.bmp', pic1, err => {
+  if (err) throw err;
+});
+demon();
+fs.writeFile('./transformations/test2.bmp', pic2, err => {
+  if (err) throw err;
+});
+transform3();
+fs.writeFile('./transformations/test3.bmp', pic3, err => {
+  if (err) throw err;
+});
+blackAndWhite();
+fs.writeFile('./transformations/test4.bmp', pic4, err => {
+  if (err) throw err;
+});
 
-    bitmap.transform(operation);
 
-    // Note that this has to be nested!
-    // Also, it uses the bitmap's instance properties for the name and thew new buffer
-    fs.writeFile(bitmap.newFile, bitmap.buffer, (err, out) => {
-      if (err) {
-        throw err;
-      }
-      console.log(`Bitmap Transformed: ${bitmap.newFile}`);
-    });
 
-  });
-}
 
-// TODO: Explain how this works (in your README)
-const [file, operation] = process.argv.slice(2);
 
-let bitmap = new Bitmap(file);
 
-transformWithCallbacks();
 
+
+
+// const bald = fs.readFileSync(`${__dirname}/assets/baldy.bmp`);
+// Create a naked object to model the bitmap properties
+// const parsedBitmap = {};
+
+// // Identify the offsets by reading the bitmap docs
+// const FILE_SIZE_OFFSET = 2;
+// const WIDTH_OFFSET = 18;
+// const HEIGHT_OFFSET = 22;
+// const BYTES_PER_PIXEL_OFFSET = 28;
+// const COLOR_PALLET_OFFSET = 46;
+// const COLOR_TABLE_OFFSET = 54; // number of bytes in the color table (color table === pixel array)
+// const PIXEL_ARRAY_OFFSET = 310; // The actual colors of the image. 256 (color table, a table of colors!) + 54 previous header)
+
+// // pixel-array tells you which part of the color table is being used by that pixel.
+
+// //------------------------------------------------------
+// // READING INFORMATION FROM THE BITMAP FILE
+// //------------------------------------------------------
+
+// parsedBitmap.type = bald.toString('utf-8', 0, 2);
+// parsedBitmap.fileSize = bald.readInt32LE(FILE_SIZE_OFFSET);
+// parsedBitmap.bytesPerPixel = bald.readInt16LE(BYTES_PER_PIXEL_OFFSET);
+// parsedBitmap.height = bald.readInt32LE(HEIGHT_OFFSET);
+// parsedBitmap.width = bald.readInt32LE(WIDTH_OFFSET);
+// parsedBitmap.colorPallet = bald.readInt32LE(COLOR_PALLET_OFFSET);
+// parsedBitmap.colorTable = bald.readInt32LE(COLOR_TABLE_OFFSET);
+// parsedBitmap.pixelArray = bald.readInt32LE(PIXEL_ARRAY_OFFSET);
+
+// // Bottom left boundary = 1146
+// // Top right boundary = bald.length
+// // Color table
